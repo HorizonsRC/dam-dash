@@ -36,3 +36,16 @@ def get_latest_data(site_name, measurement):
     params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
     url = "http://hilltopserver.horizons.govt.nz/environmentaldata.hts"
     return requests.get(url, params=params)
+
+
+def get_data(site_name, measurement, duration):
+    payload = {
+        "Service": "Hilltop",
+        "Request": "GetData",
+        "Site": site_name,
+        "Measurement": measurement,
+        "TimeInterval": duration,
+    }
+    params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
+    url = "http://hilltopserver.horizons.govt.nz/environmentaldata.hts"
+    return requests.get(url, params=params)

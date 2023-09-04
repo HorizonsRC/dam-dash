@@ -1,4 +1,4 @@
-from dash import Dash, html, dash_table, dcc, Input, Output
+from dash import Dash, html, dash_table, dcc, Input, Output, State
 import dash
 import pandas as pd
 import os
@@ -6,7 +6,7 @@ import requests
 import plotly.express as px
 import plotly.graph_objects as go
 from server_requests import get_sites, get_measurements, get_latest_data
-from construct_sites import add_survey_data, add_stage_data, construct_page, fetch_duration_df
+from construct_sites import add_survey_data, add_stage_data, construct_page, fetch_duration_df, construct_overview_page
 import json
 import xml.etree.ElementTree as ET
 import xmltodict
@@ -15,7 +15,7 @@ import dash_bootstrap_components as dbc
 
 from dash_bootstrap_templates import load_figure_template
 
-load_figure_template("quartz")
+load_figure_template("solar")
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -79,11 +79,15 @@ add_stage_data(sites)
 # print(list(sites.keys()))
 app = Dash(__name__, use_pages=True,
     pages_folder="",
-    external_stylesheets=[dbc.themes.QUARTZ],
+    external_stylesheets=[dbc.themes.SOLAR],
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
     ],
 )
+
+overview_page = construct_overview_page(sites)
+dash.register_page("Overview", path="/", layout=overview_page)
+
 
 sitename_lookup = {}
 for sitename, sitedata in sites.items():
@@ -94,37 +98,41 @@ for sitename, sitedata in sites.items():
     dash.register_page(sitename, path=f"/{sanitized}", layout=page_content)
 
 
-sidebar = html.Div(
-    [
-        html.H2("Dam Buoy*"),
-        html.Hr(),
-        html.P(
-            "*Working title. Also considering Dam It, Dam Dash, or Hot Dam. Send your thoughts and ideas to nic@fakemail.coom"
-        ),
-        dbc.Nav([
-            dbc.NavLink(page['name'], href=page["relative_path"], active="exact")
-            for page in dash.page_registry.values()
-        ], vertical=True, pills=True)
+def sidebar():
+    return html.Div(
+        [
+            html.H2("Dam Buoy*"),
+            html.Hr(),
+            html.P(
+                "*Working title. Also considering Dam It, Dam Dash, or Hot Dam. Send your thoughts and ideas to nic@fakemail.coom"
+            ),
+            html.Hr(),
+            dbc.Nav([
+                dbc.NavLink("Overview Map", href="/", active="exact")
+            ], vertical=True, pills=True),
+            html.Hr(),
+            dbc.Nav([
+                dbc.NavLink(page['name'], href=page["relative_path"], active="exact")
+                for page in dash.page_registry.values() if page["path"] != "/"
+            ], vertical=True, pills=True),
+            
+        ],
+        style=SIDEBAR_STYLE
+    )
         
-    ],
-    style=SIDEBAR_STYLE
-)
-    
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    sidebar,
+    dcc.Location(id='url', refresh=True),
+    sidebar(),
     dbc.Container([
         dash.page_container,
     ], fluid=True)
 ], style=CONTENT_STYLE)
 
-
 @app.callback(
     Output("time-series-plot", "figure"),
-    [Input("duration-selector", "value"), Input("url", "pathname")]
+    [Input("duration-selector", "value"), State("url", "pathname")]
 )
-def update_time_series_plot(duration, pathname):
-    print(pathname, duration)
+def update_content(duration, pathname):
     sitename = sitename_lookup[pathname]
     df = fetch_duration_df(sitename, duration)
     fig = px.line(df, x="Timestamp", y="Stage (mm)")
@@ -137,6 +145,17 @@ def update_time_series_plot(duration, pathname):
     #               line_dash='dot')
     return fig
 
-
+@app.callback(
+    Output("url", "pathname"),
+    Input("map", "clickData"),
+    prevent_initial_call=True
+)
+def overview_map_clickthrough(click_data):
+    if click_data is not None:
+        site = click_data["points"][0]["customdata"]
+        return f"/{site}"
+    else:
+        return "/"
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) # DEVELOPMENT
+    # app.run(host='0.0.0.0', port=8050, debug=False) # PRODUCTION

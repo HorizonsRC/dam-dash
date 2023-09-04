@@ -1,5 +1,6 @@
 from server_requests import get_latest_data, get_measurements, get_data
 from dash import Dash, html, dash_table, dcc, callback, Input, Output
+import dash_leaflet as dl
 import dash_bootstrap_components as dbc
 import pandas as pd
 import xmltodict
@@ -12,6 +13,8 @@ import json
 import numpy as np
 from PIL import Image
 import io
+
+MAPBOX_TOKEN = "pk.eyJ1IjoibmljbW9zdGVydCIsImEiOiJjbGx3eDZ5ZHIxbzI0M2ZwaGR1ZHN5NnZzIn0.KDSOloWKwP8T6Uso9LEtcQ"
 
 DURATIONS = [
     {"label": "1 Year", "value": "P1Y"},
@@ -155,7 +158,7 @@ def map_sat_image(name, data):
         marker=dict(
             size=6,
         ),
-        text=name
+        text=name,
     )
 
     map_layout = go.Layout(
@@ -171,13 +174,67 @@ def map_sat_image(name, data):
                 "source": [map_url]
             }]
         ),
-        showlegend=False
+        showlegend=False,
     )
     map_fig = go.Figure(data=[map_trace], layout=map_layout)
 
     map_fig.update_layout(margin={"r":0, "t":0, "l":0, "b":0})
     return map_fig
 
+
+def map_overview(sites):
+    centroid_lat = []
+    centroid_lon = []
+
+    map_fig = go.Figure()
+    color_sequence = pc.qualitative.Vivid
+    
+    for i, (name, data) in enumerate(sites.items()):
+        centroid_lat += [data["centroid_wgs84"][0]]
+        centroid_lon += [data["centroid_wgs84"][1]]
+
+        map_fig.add_trace(go.Scattermapbox(
+            lat=centroid_lat,
+            lon=centroid_lon,
+            mode='markers',
+            marker=go.scattermapbox.Marker(
+                size=20,
+                # color="#fdca26",
+                color="#002b36",
+            ),
+        ))
+        map_fig.add_trace(go.Scattermapbox(
+            lat=centroid_lat,
+            lon=centroid_lon,
+            mode='markers',
+            marker=go.scattermapbox.Marker(
+                size=17,
+                # color="#002b36",
+                color="#fdca26",
+            ),
+        ))
+    mid_lat = sum(centroid_lat)/len(centroid_lat)
+    mid_lon = sum(centroid_lon)/len(centroid_lon)
+    
+    map_fig.update_traces(
+        customdata=list(sites.keys()),
+        text=list(sites.keys()),
+        selector=dict(type='scattermapbox')
+    )
+
+    map_fig.update_layout(
+        margin={"r":0, "t":0, "l":0, "b":0},
+        mapbox=dict(
+            style='mapbox://styles/mapbox/satellite-streets-v12',  # Use 'mapbox://styles/mapbox/satellite-streets-v11' for satellite view
+            accesstoken=MAPBOX_TOKEN,
+            center=dict(lat=mid_lat, lon=mid_lon),
+            zoom=11,
+        ),
+        showlegend=False,
+        height=900
+    )
+    return map_fig
+    
 
 def construct_page(name, data):
 
@@ -211,7 +268,7 @@ def construct_page(name, data):
                                 options=DURATIONS,
                                 value=DURATIONS[-1]["value"],
                             ),
-                            dcc.Graph(id="time-series-plot")
+                            dcc.Graph(figure=go.Figure(), id="time-series-plot")
                         ], className="p-5 radio-group")
                     ], width=12),
                 ], align="center"),
@@ -237,3 +294,6 @@ def construct_page(name, data):
         )
     ])
     return content
+
+def construct_overview_page(sites):
+    return dcc.Graph(figure=map_overview(sites), id="map")

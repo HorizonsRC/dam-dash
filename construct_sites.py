@@ -13,6 +13,7 @@ import json
 import numpy as np
 from PIL import Image
 import io
+import os
 
 MAPBOX_TOKEN = "pk.eyJ1IjoibmljbW9zdGVydCIsImEiOiJjbGx3eDZ5ZHIxbzI0M2ZwaGR1ZHN5NnZzIn0.KDSOloWKwP8T6Uso9LEtcQ"
 

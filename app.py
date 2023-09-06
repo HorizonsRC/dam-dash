@@ -157,5 +157,5 @@ def overview_map_clickthrough(click_data):
     else:
         return "/"
 if __name__ == '__main__':
-    app.run(debug=True) # DEVELOPMENT
-    # app.run(host='0.0.0.0', port=8050, debug=False) # PRODUCTION
+    # app.run(debug=True) # DEVELOPMENT
+    app.run(host='0.0.0.0', port=8050, debug=False) # PRODUCTION

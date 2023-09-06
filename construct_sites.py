@@ -16,6 +16,9 @@ import io
 
 MAPBOX_TOKEN = "pk.eyJ1IjoibmljbW9zdGVydCIsImEiOiJjbGx3eDZ5ZHIxbzI0M2ZwaGR1ZHN5NnZzIn0.KDSOloWKwP8T6Uso9LEtcQ"
 
+script_directory = os.path.dirname(os.path.abspath(__file__))
+survey_path = os.path.join(script_directory, "23021-20230824-COORDINATES.xlsx")
+
 DURATIONS = [
     {"label": "1 Year", "value": "P1Y"},
     {"label": "3 Months", "value": "P3M"},
@@ -27,7 +30,7 @@ DURATIONS = [
 
 
 def add_survey_data(sites):
-    df = pd.read_excel("23021-20230824-COORDINATES.xlsx", header=None)
+    df = pd.read_excel(survey_path, header=None)
     split_rows = list(df[df[0] == "X"].index.values)
     split_rows.append(len(df))
     dams = []

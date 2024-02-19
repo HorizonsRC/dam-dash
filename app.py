@@ -1,19 +1,26 @@
-from dash import Dash, html, dash_table, dcc, Input, Output, State
-import dash
-import pandas as pd
-import os
-import requests
-import plotly.express as px
-import plotly.graph_objects as go
-from server_requests import get_sites, get_measurements, get_latest_data
-from construct_sites import add_survey_data, add_stage_data, construct_page, fetch_duration_df, construct_overview_page
-import json
-import xml.etree.ElementTree as ET
-import xmltodict
+# import json
+# import os
+# import xml.etree.ElementTree as ET
 from urllib.parse import quote
-import dash_bootstrap_components as dbc
 
+import dash
+import dash_bootstrap_components as dbc
+# import pandas as pd
+import plotly.express as px
+# import plotly.graph_objects as go
+# import requests
+# import xmltodict
+from dash import Dash, Input, Output, State, dcc, html
 from dash_bootstrap_templates import load_figure_template
+
+from construct_sites import (
+    add_stage_data,
+    add_survey_data,
+    construct_overview_page,
+    construct_page,
+    fetch_duration_df,
+)
+# from server_requests import get_latest_data, get_measurements, get_sites
 
 load_figure_template("solar")
 
@@ -84,6 +91,8 @@ app = Dash(__name__, use_pages=True,
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
     ],
 )
+
+server = app.server
 
 overview_page = construct_overview_page(sites)
 dash.register_page("Overview", path="/", layout=overview_page)

@@ -21,10 +21,10 @@ USER dam
 WORKDIR /home/dam
 
 # =======PROD=========
-# RUN git clone https://github.com/HorizonsRC/dam-dash.git
+RUN git clone https://github.com/HorizonsRC/dam-dash.git
 
 # =======DEV==========
-COPY . ./dam_dash
+# COPY . ./dam_dash
 
 WORKDIR /home/dam/dam_dash
 RUN pip install --upgrade pip

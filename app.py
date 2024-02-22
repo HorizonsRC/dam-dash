@@ -14,6 +14,7 @@ import plotly.express as px
 # import xmltodict
 from dash import Dash, Input, Output, State, dcc, html
 from dash_bootstrap_templates import load_figure_template
+from flask import Flask
 
 from construct_sites import (
     add_stage_data,
@@ -56,8 +57,10 @@ sites = {
 add_survey_data(sites)
 add_stage_data(sites)
 
+server = Flask(__name__)
+
 app = Dash(
-    __name__,
+    server=server,
     use_pages=True,
     pages_folder="",
     external_stylesheets=[dbc.themes.CYBORG],

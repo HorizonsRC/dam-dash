@@ -92,7 +92,7 @@ def sidebar():
         [
             html.Img(src=logo_path, height=290),
             html.H2("Dam Dash"),
-            html.P("v0.1.0 (Beta)"),
+            html.P("v0.1.1 (Beta)"),
             html.Hr(),
             html.P(
                 "A dashboard for Tane's dams. "

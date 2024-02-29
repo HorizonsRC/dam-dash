@@ -90,7 +90,7 @@ for sitename, sitedata in sites.items():
 def sidebar():
     return dbc.Col(
         [
-            html.Img(src=logo_path, height=290),
+            html.Img(src=logo_path, width=290),
             html.H2("Dam Dash"),
             html.P("v0.1.1 (Beta)"),
             html.Hr(),

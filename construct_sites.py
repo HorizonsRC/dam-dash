@@ -139,18 +139,47 @@ def calculate_centroid(coords):
 
 
 def plot_cross_section(data):
-    crossec_fig = px.area(
+    crossec_fig = go.Figure(go.Scatter(
         # data,
         x=data["distance"],
         y=data["elevation"],
-        color_discrete_sequence=[px.colors.qualitative.Prism[5]],
-        # labels={
-        #     "distance":"Distance along dam wall (m)",
-        #     "elevation": "Elevation (m)",
-        # },
+        showlegend=False,
+        fill='tozeroy',
+        marker=dict(
+            opacity=0,
+            color=px.colors.qualitative.Prism[5],
+        ),
+        hovertemplate=None,
+        name="Dam height"
+    ))
+    level_df = fetch_duration_df(data["name"], "P1D")
+    latest_level = (level_df.iloc[-1]["Stage (mm)"] + data["offset"])/1000
+    crossec_fig.add_trace(go.Scatter(
+        x = data["distance"],
+        y = [latest_level]*len(data["distance"]),
+        showlegend=False,
+        fill='tozeroy',
+        marker=dict(
+            opacity=0,
+            color=px.colors.qualitative.Prism[2],
+        ),
+        name="Radar level"
+    ))
+    crossec_fig.add_hline(
+        y=latest_level,
+        annotation_text="RADAR LEVEL",
+        annotation_position="top left",
+        annotation_font=dict(
+            color=px.colors.qualitative.Prism[2],
+            size=16
+        ),
+        line={
+            "color":px.colors.qualitative.Prism[2],
+            "width":4
+        },
     )
     crossec_fig.add_hline(
-        y=data["radar_level"], annotation_text="RADAR LEVEL", line_dash="dot"
+        y=data["radar_level"], annotation_text="RADAR HEIGHT", line_dash="dot"
     )
     crossec_fig.add_hline(
         y=data["paver_level"], annotation_text="PAVER LEVEL", line_dash="dot"
@@ -163,35 +192,14 @@ def plot_cross_section(data):
         annotation_text="CULVERT LEVEL",
         line_dash="dot",
     )
-    level_df = fetch_duration_df(data["name"], "P1D")
-    latest_level = (level_df.iloc[-1]["Stage (mm)"] + data["offset"])/1000
     
-    crossec_fig.add_hline(
-        y=latest_level,
-        annotation_text="WATER LEVEL",
-        annotation_position="top left",
-        annotation_font=dict(color=px.colors.qualitative.Prism[2]),
-        line={
-            "color":px.colors.qualitative.Prism[2]
-        }
-    )
-
-    crossec_fig.add_trace(go.Scatter(
-        x = data["distance"],
-        y = [latest_level]*len(data["distance"]),
-        hoverinfo="none",
-        showlegend=False,
-        fill='tozeroy',
-        marker=dict(
-            size=0,
-            color=px.colors.qualitative.Prism[1],
-        ),
-    ))
+    crossec_fig.update_traces(hovertemplate=None)
 
     crossec_fig.update_layout(
         yaxis_range=data["ylims"],
         xaxis_title="Distance along dam wall (m)",
         yaxis_title="Elevation (m)",
+        hovermode="x",
     )
     return crossec_fig
 
@@ -221,31 +229,35 @@ def map_sat_image(name, data):
     )
     map_fig = go.Figure(layout=map_layout)
 
-    map_fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-
+    # map_fig.add_trace(
+    #     go.Scattermapbox(
+    #         lat=data["lats"],
+    #         lon=data["lons"],
+    #         mode="markers",
+    #         marker=dict(
+    #             size=10,
+    #             color=px.colors.qualitative.Prism[1],
+    #         ),
+    #         text=name,
+    #         hoverinfo=None,
+    #         name=name
+    #     )
+    # )
     map_fig.add_trace(
         go.Scattermapbox(
             lat=data["lats"],
             lon=data["lons"],
             mode="markers",
-            marker=dict(
-                size=10,
-                color=px.colors.qualitative.Prism[1],
-            ),
-            text=name,
-        )
-    )
-    map_fig.add_trace(
-        go.Scattermapbox(
-            lat=data["lats"],
-            lon=data["lons"],
-            mode="markers",
+            hoverlabel=None,
             marker=dict(
                 size=6,
                 color=px.colors.qualitative.Prism[5],
             ),
             text=name,
         )
+    )
+    map_fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
     return map_fig
 
@@ -267,10 +279,10 @@ def map_overview(sites):
                 mode="markers",
                 marker=go.scattermapbox.Marker(
                     size=20,
-                    # color="#fdca26",
-                    color="#002b36",
+                    color=px.colors.qualitative.Prism[5],
                 ),
-            )
+                hoverinfo="none",
+            ),
         )
         map_fig.add_trace(
             go.Scattermapbox(
@@ -279,10 +291,22 @@ def map_overview(sites):
                 mode="markers",
                 marker=go.scattermapbox.Marker(
                     size=17,
-                    # color="#002b36",
-                    color="#fdca26",
+                    color=px.colors.qualitative.Prism[1],
                 ),
-            )
+                hoverinfo="none",
+            ),
+        )
+        map_fig.add_trace(
+            go.Scattermapbox(
+                lat=centroid_lat,
+                lon=centroid_lon,
+                mode="markers",
+                marker=go.scattermapbox.Marker(
+                    size=14,
+                    color=px.colors.qualitative.Prism[5],
+                ),
+                hoverinfo="lat+lon+text",
+            ),
         )
     mid_lat = sum(centroid_lat) / len(centroid_lat)
     mid_lon = sum(centroid_lon) / len(centroid_lon)

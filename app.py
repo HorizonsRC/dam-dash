@@ -24,9 +24,9 @@ from construct_sites import (
     fetch_duration_df,
 )
 
-# from server_requests import get_latest_data, get_measurements, get_sites
+logo_path = "assets/logo_edited.png"
 
-load_figure_template("cyborg")
+load_figure_template("solar")
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -36,22 +36,25 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
 }
+# IMG_STYLE = {
+#     "background-color": px.colors.qualitative.Prism[2],
+# }
 
 CONTENT_STYLE = {
     "margin-left": "18rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
-# I'm totally guessing these offsets by eyeballing the recent running average
+# These offsets MUST be zero unless Tane gives written instruction to change them.
 sites = {
     "Tutaenui at Dam E4": {
         "datum": 166,  # Meters
-        "offset": 120,  # Millimeters. I know.
+        "offset": 0,  # Millimeters. I know.
     },
-    "Tutaenui at Dam W3": {"datum": 175, "offset": -470},
-    "Porewa at Dam 62": {"datum": 294, "offset": 10},
+    "Tutaenui at Dam W3": {"datum": 175, "offset": 0},
+    "Porewa at Dam 62": {"datum": 294, "offset": 0},
     "Porewa at Dam 73": {"datum": 274, "offset": 0},
-    "Porewa at Dam 75": {"datum": 285, "offset": -5},
+    "Porewa at Dam 75": {"datum": 285, "offset": 0},
 }
 
 add_survey_data(sites)
@@ -63,7 +66,7 @@ app = Dash(
     server=server,
     use_pages=True,
     pages_folder="",
-    external_stylesheets=[dbc.themes.CYBORG],
+    external_stylesheets=[dbc.themes.SOLAR],
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
     ],
@@ -85,8 +88,9 @@ for sitename, sitedata in sites.items():
 
 
 def sidebar():
-    return html.Div(
+    return dbc.Col(
         [
+            html.Img(src=logo_path, height=290),
             html.H2("Dam Dash"),
             html.P("v0.1.0 (Beta)"),
             html.Hr(),
@@ -104,7 +108,7 @@ def sidebar():
             dbc.Nav(
                 [
                     dbc.NavLink(
-                        page["name"],
+                        sitename_lookup[page["path"]],
                         href=page["relative_path"],
                         active="exact",
                     )
@@ -116,6 +120,7 @@ def sidebar():
             ),
         ],
         style=SIDEBAR_STYLE,
+        align="end"
     )
 
 
@@ -147,13 +152,18 @@ def update_content(duration, pathname):
     fig = px.line(
         df,
         x="Timestamp",
-        y="Stage (mm)",
+        y=["Stage (mm)"],
         color_discrete_sequence=[px.colors.qualitative.Prism[5]],
-        # range_y=sites[sitename]["ylims"]
+        labels=dict(value="Stage (mm)"),
+    )
+    fig.update_traces(
+        name="RADAR LEVEL",
+        line=dict(width=4),
+        hovertemplate=None
     )
     fig.add_hline(
         y=sites[sitename]["radar_level"] * 1000,
-        annotation_text="RADAR LEVEL",
+        annotation_text="RADAR HEIGHT",
         line_dash="dot",
     )
     fig.add_hline(
@@ -177,6 +187,17 @@ def update_content(duration, pathname):
             sites[sitename]["ylims"][0] * 1000,
             sites[sitename]["ylims"][1] * 1000,
         ),
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            xanchor="left",
+            y=-0.17,
+            title=None,
+        ),
+        hovermode="x"
+    )
+    fig.update_traces(
     )
     return fig
 

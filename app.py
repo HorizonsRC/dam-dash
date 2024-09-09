@@ -15,6 +15,7 @@ import plotly.express as px
 from dash import Dash, Input, Output, State, dcc, html
 from dash_bootstrap_templates import load_figure_template
 from flask import Flask
+from color_utils import get_colors
 
 from construct_sites import (
     add_stage_data,
@@ -24,9 +25,12 @@ from construct_sites import (
     fetch_duration_df,
 )
 
-logo_path = "assets/logo_edited.png"
+colors = get_colors()
 
-load_figure_template("solar")
+
+logo_path = "assets/dark_horizons.png"
+
+# load_figure_template("solar")
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -36,15 +40,13 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
 }
-# IMG_STYLE = {
-#     "background-color": px.colors.qualitative.Prism[2],
-# }
 
 CONTENT_STYLE = {
     "margin-left": "18rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
+
 # These offsets MUST be zero unless Tane gives written instruction to change them.
 sites = {
     "Tutaenui at Dam E4": {
@@ -66,6 +68,7 @@ app = Dash(
     server=server,
     use_pages=True,
     pages_folder="",
+    # external_stylesheets=["https://codepen.io/chriddyp/pen/bWLwgP.css"],
     external_stylesheets=[dbc.themes.SOLAR],
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
@@ -91,24 +94,22 @@ def sidebar():
     return dbc.Col(
         [
             html.Img(src=logo_path, width=290),
-            html.H2("Dam Dash"),
-            html.P("v0.1.1 (Beta)"),
+            html.H1("Dam Dash"),
+            html.P("v0.2.0"),
             html.Hr(),
-            html.P(
-                "A dashboard for Tane's dams. "
-            ),
-            html.P("Please provide issues, feedback and comments to Nic."),
+            html.P("Yo dawg, I hear you like placeholder text. "),
+            html.P("So I put some dolor in your amit so you can lorem while you ipsum."),
             html.Hr(),
             dbc.Nav(
-                [dbc.NavLink("Overview Map", href="/", active="exact")],
+                [dbc.NavLink(html.H5("Overview Map"), href="/", active="exact")],
                 vertical=True,
                 pills=True,
             ),
-            html.Hr(),
+            # html.Hr(),
             dbc.Nav(
                 [
                     dbc.NavLink(
-                        sitename_lookup[page["path"]],
+                        html.H6(sitename_lookup[page["path"]]),
                         href=page["relative_path"],
                         active="exact",
                     )
@@ -120,7 +121,7 @@ def sidebar():
             ),
         ],
         style=SIDEBAR_STYLE,
-        align="end"
+        align="end",
     )
 
 
@@ -153,33 +154,36 @@ def update_content(duration, pathname):
         df,
         x="Timestamp",
         y=["Stage (mm)"],
-        color_discrete_sequence=[px.colors.qualitative.Prism[5]],
         labels=dict(value="Stage (mm)"),
     )
     fig.update_traces(
-        name="RADAR LEVEL",
-        line=dict(width=4),
-        hovertemplate=None
+        name="RADAR READING",
+        line=dict(width=4, color=colors["horizons_blue"]),
+        hovertemplate=None,
     )
     fig.add_hline(
         y=sites[sitename]["radar_level"] * 1000,
         annotation_text="RADAR HEIGHT",
         line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     fig.add_hline(
         y=sites[sitename]["paver_level"] * 1000,
         annotation_text="PAVER LEVEL",
         line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     fig.add_hline(
         y=sites[sitename]["outflow"] * 1000,
         annotation_text="OUTFLOW LEVEL",
         line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     fig.add_hline(
         y=sites[sitename]["culvert_invert"] * 1000,
         annotation_text="CULVERT LEVEL",
         line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     fig.update_layout(
         margin={"r": 0, "t": 20, "l": 0, "b": 0},
@@ -195,9 +199,17 @@ def update_content(duration, pathname):
             y=-0.17,
             title=None,
         ),
-        hovermode="x"
+        hovermode="x",
     )
-    fig.update_traces(
+    fig.update_traces()
+    fig.update_layout(
+        {
+            "plot_bgcolor": colors["horizons_slate"],
+            "paper_bgcolor": colors["horizons_slate_75"],
+            "xaxis_gridcolor": colors["horizons_slate_75"],
+            "yaxis_gridcolor": colors["horizons_slate_75"],
+            "font": {"color": colors["horizons_light_grey"]},
+        }
     )
     return fig
 

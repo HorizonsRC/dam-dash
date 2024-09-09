@@ -10,9 +10,11 @@ from dash import dcc, html
 
 from server_requests import get_data, get_latest_data
 from dash_bootstrap_templates import load_figure_template
+from color_utils import get_colors
 
+colors = get_colors()
 
-load_figure_template(["darkly", "sketchy", "slate"])
+# load_figure_template(["darkly", "sketchy", "slate"])
 
 MAPBOX_TOKEN = "pk.eyJ1IjoibmljbW9zdGVydCIsImEiOiJjbGx3eDZ5ZHIxbzI0M2ZwaGR1ZHN5NnZzIn0.KDSOloWKwP8T6Uso9LEtcQ"
 
@@ -64,9 +66,7 @@ def add_survey_data(sites):
         sites[site]["centroid_nztm"] = calculate_centroid(
             list(zip(split_df["X"].values, split_df["Y"].values))
         )
-        sites[site]["centroid_wgs84"] = calculate_centroid(
-            list(zip(lats, lons))
-        )
+        sites[site]["centroid_wgs84"] = calculate_centroid(list(zip(lats, lons)))
         sites[site]["min_height"] = split_df["Z"].min()
         sites[site]["max_height"] = split_df["Z"].max()
         sites[site]["radar_level"] = split_df["RADAR LEVEL : "].iloc[0]
@@ -103,12 +103,12 @@ def add_stage_data(sites):
     for site in sites:
         data_xml = get_latest_data(site, "Stage")
         data_dict = xmltodict.parse(data_xml.content)
-        sites[site]["last_updated"] = data_dict["Hilltop"]["Measurement"][
-            "Data"
-        ]["E"]["T"]
-        sites[site]["last_raw_val"] = data_dict["Hilltop"]["Measurement"][
-            "Data"
-        ]["E"]["I1"]
+        sites[site]["last_updated"] = data_dict["Hilltop"]["Measurement"]["Data"]["E"][
+            "T"
+        ]
+        sites[site]["last_raw_val"] = data_dict["Hilltop"]["Measurement"]["Data"]["E"][
+            "I1"
+        ]
         sites[site]["m_from_paver"] = (
             float(sites[site]["last_raw_val"]) + float(sites[site]["offset"])
         ) / 1000
@@ -139,60 +139,67 @@ def calculate_centroid(coords):
 
 
 def plot_cross_section(data):
-    crossec_fig = go.Figure(go.Scatter(
-        # data,
-        x=data["distance"],
-        y=data["elevation"],
-        showlegend=False,
-        fill='tozeroy',
-        marker=dict(
-            opacity=0,
-            color=px.colors.qualitative.Prism[5],
-        ),
-        hovertemplate=None,
-        name="Dam height"
-    ))
+    crossec_fig = go.Figure(
+        go.Scatter(
+            # data,
+            x=data["distance"],
+            y=data["elevation"],
+            showlegend=False,
+            fill="tozeroy",
+            marker=dict(
+                opacity=0,
+                color=colors["horizons_moss"],
+            ),
+            hovertemplate=None,
+            name="Dam height",
+        )
+    )
     level_df = fetch_duration_df(data["name"], "P1D")
-    latest_level = (level_df.iloc[-1]["Stage (mm)"] + data["offset"])/1000
-    crossec_fig.add_trace(go.Scatter(
-        x = data["distance"],
-        y = [latest_level]*len(data["distance"]),
-        showlegend=False,
-        fill='tozeroy',
-        marker=dict(
-            opacity=0,
-            color=px.colors.qualitative.Prism[2],
-        ),
-        name="Radar level"
-    ))
+    latest_level = (level_df.iloc[-1]["Stage (mm)"] + data["offset"]) / 1000
+    crossec_fig.add_trace(
+        go.Scatter(
+            x=data["distance"],
+            y=[latest_level] * len(data["distance"]),
+            showlegend=False,
+            fill="tozeroy",
+            marker=dict(
+                opacity=0,
+                color=colors["horizons_teal"],
+            ),
+            name="Radar Reading",
+        )
+    )
     crossec_fig.add_hline(
         y=latest_level,
-        annotation_text="RADAR LEVEL",
+        annotation_text="RADAR READING",
         annotation_position="top left",
-        annotation_font=dict(
-            color=px.colors.qualitative.Prism[2],
-            size=16
-        ),
-        line={
-            "color":px.colors.qualitative.Prism[2],
-            "width":4
-        },
+        annotation_font=dict(color=colors["horizons_blue"], size=16),
+        line={"color": colors["horizons_blue"], "width": 4},
     )
     crossec_fig.add_hline(
-        y=data["radar_level"], annotation_text="RADAR HEIGHT", line_dash="dot"
+        y=data["radar_level"],
+        annotation_text="RADAR HEIGHT",
+        line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     crossec_fig.add_hline(
-        y=data["paver_level"], annotation_text="PAVER LEVEL", line_dash="dot"
+        y=data["paver_level"],
+        annotation_text="PAVER LEVEL",
+        line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     crossec_fig.add_hline(
-        y=data["outflow"], annotation_text="OUTFLOW LEVEL", line_dash="dot"
+        y=data["outflow"],
+        annotation_text="OUTFLOW LEVEL",
+        line_dash="dot",
+        line_color=colors["horizons_slate_25"],
     )
     crossec_fig.add_hline(
         y=data["culvert_invert"],
         annotation_text="CULVERT LEVEL",
         line_dash="dot",
     )
-    
+
     crossec_fig.update_traces(hovertemplate=None)
 
     crossec_fig.update_layout(
@@ -200,6 +207,11 @@ def plot_cross_section(data):
         xaxis_title="Distance along dam wall (m)",
         yaxis_title="Elevation (m)",
         hovermode="x",
+        plot_bgcolor=colors["horizons_slate"],
+        paper_bgcolor=colors["horizons_slate_75"],
+        xaxis_gridcolor=colors["horizons_slate_75"],
+        yaxis_gridcolor=colors["horizons_slate_75"],
+        font={"color": colors["horizons_light_grey"]},
     )
     return crossec_fig
 
@@ -212,9 +224,7 @@ def map_sat_image(name, data):
         mapbox=dict(
             style="open-street-map",  # Use 'mapbox://styles/mapbox/satellite-streets-v11' for satellite view
             # accesstoken=mapbox_token,
-            center=dict(
-                lat=data["centroid_wgs84"][0], lon=data["centroid_wgs84"][1]
-            ),
+            center=dict(lat=data["centroid_wgs84"][0], lon=data["centroid_wgs84"][1]),
             zoom=16,
             layers=[
                 {
@@ -229,20 +239,19 @@ def map_sat_image(name, data):
     )
     map_fig = go.Figure(layout=map_layout)
 
-    # map_fig.add_trace(
-    #     go.Scattermapbox(
-    #         lat=data["lats"],
-    #         lon=data["lons"],
-    #         mode="markers",
-    #         marker=dict(
-    #             size=10,
-    #             color=px.colors.qualitative.Prism[1],
-    #         ),
-    #         text=name,
-    #         hoverinfo=None,
-    #         name=name
-    #     )
-    # )
+    map_fig.add_trace(
+        go.Scattermapbox(
+            lat=data["lats"],
+            lon=data["lons"],
+            mode="markers",
+            hoverlabel=None,
+            marker=dict(
+                size=8,
+                color=colors["horizons_slate"],
+            ),
+            text=name,
+        )
+    )
     map_fig.add_trace(
         go.Scattermapbox(
             lat=data["lats"],
@@ -251,7 +260,7 @@ def map_sat_image(name, data):
             hoverlabel=None,
             marker=dict(
                 size=6,
-                color=px.colors.qualitative.Prism[5],
+                color=colors["horizons_moss"],
             ),
             text=name,
         )
@@ -279,7 +288,7 @@ def map_overview(sites):
                 mode="markers",
                 marker=go.scattermapbox.Marker(
                     size=20,
-                    color=px.colors.qualitative.Prism[5],
+                    color=colors["horizons_slate"],
                 ),
                 hoverinfo="none",
             ),
@@ -290,8 +299,8 @@ def map_overview(sites):
                 lon=centroid_lon,
                 mode="markers",
                 marker=go.scattermapbox.Marker(
-                    size=17,
-                    color=px.colors.qualitative.Prism[1],
+                    size=18,
+                    color=colors["horizons_moss_50"],
                 ),
                 hoverinfo="none",
             ),
@@ -302,8 +311,8 @@ def map_overview(sites):
                 lon=centroid_lon,
                 mode="markers",
                 marker=go.scattermapbox.Marker(
-                    size=14,
-                    color=px.colors.qualitative.Prism[5],
+                    size=12,
+                    color=colors["horizons_moss"],
                 ),
                 hoverinfo="lat+lon+text",
             ),
@@ -346,7 +355,7 @@ def construct_page(name, data):
             dbc.Card(
                 dbc.CardBody(
                     [
-                        html.H4(name, id="site-label"),
+                        html.H2(name, id="site-label"),
                     ]
                 )
             ),
@@ -367,9 +376,7 @@ def construct_page(name, data):
                                                     labelClassName="btn btn-outline-primary",
                                                     labelCheckedClassName="active",
                                                     options=DURATIONS,
-                                                    value=DURATIONS[-1][
-                                                        "value"
-                                                    ],
+                                                    value=DURATIONS[-1]["value"],
                                                 ),
                                                 dcc.Graph(
                                                     figure=go.Figure(),
@@ -387,9 +394,7 @@ def construct_page(name, data):
                         # html.Br(),
                         dbc.Row(
                             [
-                                dbc.Col(
-                                    [dcc.Graph(figure=crossec_fig)], width=6
-                                ),
+                                dbc.Col([dcc.Graph(figure=crossec_fig)], width=6),
                                 dbc.Col([dcc.Graph(figure=map_fig)], width=6),
                             ],
                             align="center",

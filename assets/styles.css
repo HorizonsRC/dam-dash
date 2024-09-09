@@ -1,15 +1,114 @@
+
+/*:root {*/
+/*  --bs-primary: #6EA17D;*/
+/*}*/
+/**/
+body {
+  --bs-body-bg: #243746;
+  --bs-body-color: #FFFFFF;
+} 
+
+.btn {
+  --bs-btn-active-bg: #6EA17D;
+  --bs-btn-active-border-color: #4A9462;
+  --bs-btn-color: #6EA17D;
+  --bs-btn-border-color: #4A9462;
+}
+
+.card-body {
+  background-color: #5C636A;
+}
+
+.nav-link {
+  --bs-nav-link-active-color: #9FBCA7;
+  --bs-nav-link-color: #9FBCA7;
+  --bs-nav-link-hover-color: #6EA17D;
+}
+
+.nav-pills {
+  --bs-nav-pills-active-color: #6EA17D;
+  /*--bs-nav-pills-active-bg: #4A9462;*/
+  --bs-nav-pills-link-active-bg: #5C636A;
+  --bs-nav-pills-link-active-color: #EEEEEE;
+}
+
+@font-face {
+  font-family: 'MuseoSans300';
+  src: url('fonts/MuseoSans_300.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'MuseoSans500';
+  src: url('fonts/MuseoSans_500.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'MuseoSans700';
+  src: url('fonts/MuseoSans_700.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'MuseoSans900';
+  src: url('fonts/MuseoSans_900.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+
+body {
+  font-weight: 300;
+  font-family: "MuseoSans300", "Calibri", "Arial", sans-serif;
+}
+
+
+/* Typography
+-------------------------------------------------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h1 {
+  font-family: "MuseoSans900", "Calibri", "Arial", sans-serif;
+  font-weight: 900;
+}
+
+h2 {
+  font-family: "MuseoSans700", "Calibri", "Arial", sans-serif;
+  font-weight: 700;
+}
+
+h3 {
+  font-family: "MuseoSans500", "Calibri", "Arial", sans-serif;
+  font-weight: 500;
+}
+
 /* restyle radio items */
 .radio-group .form-check {
   padding-left: 0;
 }
 
-.radio-group .btn-group > .form-check:not(:last-child) > .btn {
+.radio-group .btn-group>.form-check:not(:last-child)>.btn {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.radio-group .btn-group > .form-check:not(:first-child) > .btn {
+.radio-group .btn-group>.form-check:not(:first-child)>.btn {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   margin-left: -1px;
 }
+
+/*body {*/
+/*  background-color: #243746;*/
+/*  color: #CDCED0;*/
+/*}*/
+
+/*.card-body {*/
+/*  background-color: #5C636A;*/
+/*  color: #CDCED0;*/
+/*}*/
+

@@ -37,7 +37,7 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "16rem",
+    "width": "19rem",
     "padding": "2rem 1rem",
 }
 
@@ -57,6 +57,7 @@ sites = {
     "Porewa at Dam 62": {"datum": 294, "offset": 0},
     "Porewa at Dam 73": {"datum": 274, "offset": 0},
     "Porewa at Dam 75": {"datum": 285, "offset": 0},
+    "Tawataia Dam": {"datum": 0, "offset": 0},
 }
 
 add_survey_data(sites)
@@ -93,13 +94,9 @@ for sitename, sitedata in sites.items():
 def sidebar():
     return dbc.Col(
         [
-            html.Img(src=logo_path, width=290),
+            html.Img(src=logo_path, width=280),
             html.H1("Dam Dash"),
             html.P("v0.2.0"),
-            html.Hr(),
-            html.P("Yo dawg, I hear you like placeholder text. "),
-            html.P("So I put some dolor in your amit so you can lorem while you ipsum."),
-            html.Hr(),
             dbc.Nav(
                 [dbc.NavLink(html.H5("Overview Map"), href="/", active="exact")],
                 vertical=True,
@@ -121,7 +118,7 @@ def sidebar():
             ),
         ],
         style=SIDEBAR_STYLE,
-        align="end",
+        align="start",
     )
 
 
@@ -229,4 +226,4 @@ def overview_map_clickthrough(click_data):
 
 if __name__ == "__main__":
     app.run(debug=True)  # DEVELOPMENT
-    # app.run(host='0.0.0.0', port=8050, debug=False) # PRODUCTION
+   # app.run(host='0.0.0.0', port=8050, debug=False) # PRODUCTION
